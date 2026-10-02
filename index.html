@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Геоцентрическая система Птолемея</title>
+    <title>Геоцентрическая система Птолемея — Солнце, Луна и Марс</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script>
@@ -62,7 +62,7 @@
             </div>
             <div>
                 <h1 class="font-cinzel text-xl font-bold text-amber-400 tracking-wider">Геоцентрическая система Птолемея</h1>
-                <p class="text-xs text-slate-400">Интерактивная модель небесной сферы и светил</p>
+                <p class="text-xs text-slate-400">Солнце, Луна и Марс с эпициклами</p>
             </div>
         </div>
 
@@ -74,7 +74,7 @@
         </div>
     </header>
 
-    <main class="flex-grow flex flex-col lg:flex-row items-center justify-center p-4 gap-6 max-w-[1600px] mx-auto w-full">
+    <main class="flex-grow flex flex-col xl:flex-row items-center justify-center p-4 gap-6 max-w-[1700px] mx-auto w-full">
         
         <!-- Interactive Canvas Area -->
         <div class="relative flex-grow flex items-center justify-center w-full max-w-[750px] aspect-square bg-cosmos-950/60 rounded-3xl border border-amber-500/30 shadow-2xl p-4 overflow-hidden group">
@@ -90,11 +90,12 @@
                 <div class="flex items-center gap-2"><span class="text-blue-400 font-bold">♁</span> — Земля (Центр)</div>
                 <div class="flex items-center gap-2"><span class="text-amber-400 font-bold">☉</span> — Солнце (Соединено прямой)</div>
                 <div class="flex items-center gap-2"><span class="text-slate-200 font-bold">☽</span> — Луна (Соединено прямой)</div>
+                <div class="flex items-center gap-2"><span class="text-red-400 font-bold">♂</span> — Марс (С эпициклом, соединение прямой)</div>
             </div>
         </div>
 
         <!-- Control & Info Panel -->
-        <div class="w-full lg:w-[420px] flex flex-col gap-6">
+        <div class="w-full xl:w-[440px] flex flex-col gap-6">
             
             <!-- Live Status Panel -->
             <div class="glass-panel p-6 rounded-3xl shadow-xl space-y-4">
@@ -103,25 +104,32 @@
                     <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></span>
                 </h2>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-cosmos-900/60 p-4 rounded-2xl border border-amber-500/10">
-                        <div class="text-xs text-slate-400 font-cinzel mb-1">Солнце (☉)</div>
-                        <div id="sun-zodiac" class="text-base font-bold text-amber-300 flex items-center gap-2">
-                            <span class="text-xl">♎</span> Весы
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-cosmos-900/60 p-3 rounded-2xl border border-amber-500/10">
+                        <div class="text-[11px] text-slate-400 font-cinzel mb-1">Солнце (☉)</div>
+                        <div id="sun-zodiac" class="text-sm font-bold text-amber-300 flex items-center gap-1">
+                            <span class="text-lg">♎</span> Весы
                         </div>
-                        <div id="sun-deg" class="text-xs text-slate-400 mt-1">0.0°</div>
+                        <div id="sun-deg" class="text-[10px] text-slate-400 mt-1">0.0°</div>
                     </div>
-                    <div class="bg-cosmos-900/60 p-4 rounded-2xl border border-amber-500/10">
-                        <div class="text-xs text-slate-400 font-cinzel mb-1">Луна (☽)</div>
-                        <div id="moon-zodiac" class="text-base font-bold text-slate-200 flex items-center gap-2">
-                            <span class="text-xl">♈</span> Овен
+                    <div class="bg-cosmos-900/60 p-3 rounded-2xl border border-amber-500/10">
+                        <div class="text-[11px] text-slate-400 font-cinzel mb-1">Луна (☽)</div>
+                        <div id="moon-zodiac" class="text-sm font-bold text-slate-200 flex items-center gap-1">
+                            <span class="text-lg">♈</span> Овен
                         </div>
-                        <div id="moon-deg" class="text-xs text-slate-400 mt-1">0.0°</div>
+                        <div id="moon-deg" class="text-[10px] text-slate-400 mt-1">0.0°</div>
+                    </div>
+                    <div class="bg-cosmos-900/60 p-3 rounded-2xl border border-amber-500/10">
+                        <div class="text-[11px] text-slate-400 font-cinzel mb-1">Марс (♂)</div>
+                        <div id="mars-zodiac" class="text-sm font-bold text-red-400 flex items-center gap-1">
+                            <span class="text-lg">♈</span> Овен
+                        </div>
+                        <div id="mars-deg" class="text-[10px] text-slate-400 mt-1">0.0°</div>
                     </div>
                 </div>
 
                 <div class="text-xs text-slate-400 italic bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                    💡 <span class="font-semibold text-amber-300">Птолемеева астрономия:</span> Земля недвижима в центре. Солнце и Луна обращаются по эксцентрическим кругам с прямыми соединительными линиями, а по внешнему кольцу расположены знаки Зодиака (Овен строго справа на 0°).
+                    💡 <span class="font-semibold text-amber-300">Система Птолемея:</span> Земля недвижима в центре. Солнце и Луна движутся по кругам, а Марс движется по эпициклу, центр которого следует за Солнцем (обращение за 1 год), создавая петлеобразное попятное движение. К центру идет прямая линия.
                 </div>
             </div>
 
@@ -172,7 +180,7 @@
     </main>
 
     <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-amber-500/10 font-cinzel">
-        Геоцентрическая модель Птолемея • Научно-образовательная визуализация
+        Геоцентрическая модель Птолемея • Научно-образовательная визуализация с Марсом
     </footer>
 
     <script>
@@ -196,11 +204,11 @@
         let isRunning = true;
         let timeSpeed = 1.0; // multiplier
         
-        // Initial simulation date: October 2, 2026 (or current real date)
+        // Initial simulation date: October 2, 2026
         const defaultDate = new Date(2026, 9, 2); 
         let simulationDate = new Date(defaultDate.getTime());
 
-        // Epoch reference for orbital calculations (J2000.0 approx or standard offset)
+        // Epoch reference for orbital calculations (J2000.0)
         const epochDate = new Date(2000, 0, 1);
 
         // Canvas setup
@@ -221,21 +229,26 @@
             const diffTime = date - epochDate;
             const diffDays = diffTime / (1000 * 60 * 60 * 24);
 
-            // Mean motions (degrees per day) in geocentric view
-            // Sun completes 360 deg in ~365.2425 days (~0.9856 deg/day)
-            // Moon completes 360 deg relative to Sun/Zodiac in ~27.32 days (~13.176 deg/day)
+            // Mean motions (degrees per day)
             const sunDeg = (280.46 + 0.9856474 * diffDays) % 360;
             const moonDeg = (218.32 + 13.176396 * diffDays) % 360;
 
+            // Mars in Ptolemaic model:
+            // Center of epicycle revolves around Earth with Sun's period (~365.24 days -> ~0.9856 deg/day)
+            // Mars revolves on its epicycle with synodic period (~779.94 days -> (360/779.94) ≈ 0.4616 deg/day relative)
+            const marsCenterDeg = sunDeg; // Center of Mars epicycle tracks the Sun in longitude
+            const marsEpicycleDeg = (155.0 + (360.0 / 779.94) * diffDays) % 360;
+
             return {
                 sun: (sunDeg + 360) % 360,
-                moon: (moonDeg + 360) % 360
+                moon: (moonDeg + 360) % 360,
+                marsCenter: (marsCenterDeg + 360) % 360,
+                marsEpicycle: (marsEpicycleDeg + 360) % 360
             };
         }
 
         function getZodiacForDegree(deg) {
             let normalized = (deg % 360 + 360) % 360;
-            // In our layout: Aries (0°) is at 3 o'clock (0 rad), moving clockwise (+deg)
             let index = Math.floor(normalized / 30) % 12;
             return ZODIAC_SIGNS[index];
         }
@@ -246,6 +259,8 @@
         const sunDegEl = document.getElementById('sun-deg');
         const moonZodiacEl = document.getElementById('moon-zodiac');
         const moonDegEl = document.getElementById('moon-deg');
+        const marsZodiacEl = document.getElementById('mars-zodiac');
+        const marsDegEl = document.getElementById('mars-deg');
         const speedSlider = document.getElementById('speed-slider');
         const speedLabel = document.getElementById('speed-label');
         const btnToggle = document.getElementById('btn-toggle');
@@ -306,7 +321,6 @@
             lastTimestamp = timestamp;
 
             if (isRunning) {
-                // Advance simulation time: 1 real second = 1 simulation day * timeSpeed
                 const daysToAdd = (deltaTime / 1000) * timeSpeed;
                 simulationDate.setTime(simulationDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
                 updateDatePickerInput();
@@ -317,23 +331,38 @@
             const sunZodiac = getZodiacForDegree(positions.sun);
             const moonZodiac = getZodiacForDegree(positions.moon);
 
+            // Compute Mars exact geocentric position for zodiac indicator
+            const marsDeferentDist = 0.58; // relative layout distance
+            const marsEpicycleRadius = 0.22;
+            const centerRad = (positions.marsCenter * Math.PI) / 180;
+            const epiRad = (positions.marsEpicycle * Math.PI) / 180;
+            const cX = Math.cos(centerRad) * marsDeferentDist;
+            const cY = Math.sin(centerRad) * marsDeferentDist;
+            const marsX = cX + Math.cos(epiRad) * marsEpicycleRadius;
+            const marsY = cY + Math.sin(epiRad) * marsEpicycleRadius;
+            const marsAbsDeg = (Math.atan2(marsY, marsX) * 180 / Math.PI + 360) % 360;
+            const marsZodiac = getZodiacForDegree(marsAbsDeg);
+
             // Update UI Info
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
             headerDateEl.textContent = simulationDate.toLocaleDateString('ru-RU', options);
 
-            sunZodiacEl.innerHTML = `<span class="text-xl">${sunZodiac.symbol}</span> ${sunZodiac.name}`;
-            sunDegEl.textContent = `${positions.sun.toFixed(1)}° (${sunZodiac.name})`;
+            sunZodiacEl.innerHTML = `<span class="text-base">${sunZodiac.symbol}</span> ${sunZodiac.name}`;
+            sunDegEl.textContent = `${positions.sun.toFixed(1)}°`;
 
-            moonZodiacEl.innerHTML = `<span class="text-xl">${moonZodiac.symbol}</span> ${moonZodiac.name}`;
-            moonDegEl.textContent = `${positions.moon.toFixed(1)}° (${moonZodiac.name})`;
+            moonZodiacEl.innerHTML = `<span class="text-base">${moonZodiac.symbol}</span> ${moonZodiac.name}`;
+            moonDegEl.textContent = `${positions.moon.toFixed(1)}°`;
+
+            marsZodiacEl.innerHTML = `<span class="text-base">${marsZodiac.symbol}</span> ${marsZodiac.name}`;
+            marsDegEl.textContent = `${marsAbsDeg.toFixed(1)}°`;
 
             // Render Canvas Scene
-            renderScene(positions);
+            renderScene(positions, { x: marsX, y: marsY, cX: cX, cY: cY }, marsAbsDeg);
 
             requestAnimationFrame(animate);
         }
 
-        function renderScene(pos) {
+        function renderScene(pos, marsData, marsAbsDeg) {
             const width = canvas.clientWidth;
             const height = canvas.clientHeight;
             ctx.clearRect(0, 0, width, height);
@@ -365,7 +394,6 @@
             ZODIAC_SIGNS.forEach((sign, i) => {
                 const angleStart = (sign.startDeg * Math.PI) / 180;
                 const angleMid = ((sign.startDeg + 15) * Math.PI) / 180;
-                const angleEnd = ((sign.startDeg + 30) * Math.PI) / 180;
 
                 // Dividing line
                 ctx.beginPath();
@@ -382,8 +410,7 @@
 
                 ctx.save();
                 ctx.translate(sx, sy);
-                // Rotate text to face upright/tangent nicely
-                ctx.font = 'bold 20px "Cinzel", serif';
+                ctx.font = 'bold 18px "Cinzel", serif';
                 ctx.fillStyle = '#fbbf24';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -391,20 +418,26 @@
                 ctx.restore();
             });
 
-            // 2. Draw Direct Lines from Earth (Center) to Sun and Moon
-            // NO orbits (circles) are displayed as per requirements!
+            // 2. Draw Direct Lines from Earth (Center) to Sun, Moon, and Mars (NO orbits displayed)
             
-            // Sun coordinates (e.g. at 65% of radius)
-            const sunDist = radius * 0.62;
+            // Sun coordinates
+            const sunDist = radius * 0.45;
             const sunRad = (pos.sun * Math.PI) / 180;
             const sunX = Math.cos(sunRad) * sunDist;
             const sunY = Math.sin(sunRad) * sunDist;
 
-            // Moon coordinates (e.g. at 42% of radius)
-            const moonDist = radius * 0.40;
+            // Moon coordinates
+            const moonDist = radius * 0.25;
             const moonRad = (pos.moon * Math.PI) / 180;
             const moonX = Math.cos(moonRad) * moonDist;
             const moonY = Math.sin(moonRad) * moonDist;
+
+            // Mars absolute canvas coordinates
+            const marsXScaled = marsData.x * radius;
+            const marsYScaled = marsData.y * radius;
+            const marsCXScaled = marsData.cX * radius;
+            const marsCYScaled = marsData.cY * radius;
+            const marsEpicycleRadiusScaled = 0.22 * radius;
 
             // Line to Sun (solid golden line)
             ctx.beginPath();
@@ -422,16 +455,33 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
+            // Line to Mars (solid reddish line from Earth to Mars)
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(marsXScaled, marsYScaled);
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw Mars Epicycle Circle lightly (epicycle is permitted for planets in Ptolemaic model)
+            ctx.beginPath();
+            ctx.arc(marsCXScaled, marsCYScaled, marsEpicycleRadiusScaled, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
             // 3. Draw Earth at Center (♁)
             ctx.beginPath();
-            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.arc(0, 0, 16, 0, Math.PI * 2);
             ctx.fillStyle = '#1e293b';
             ctx.fill();
             ctx.strokeStyle = '#3b82f6';
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            ctx.font = 'bold 18px "Cinzel", serif';
+            ctx.font = 'bold 16px "Cinzel", serif';
             ctx.fillStyle = '#60a5fa';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -440,61 +490,80 @@
             // Earth label
             ctx.font = '11px "Plus Jakarta Sans", sans-serif';
             ctx.fillStyle = '#94a3b8';
-            ctx.fillText('Земля', 0, 28);
+            ctx.fillText('Земля', 0, 26);
 
             // 4. Draw Sun (☉)
             ctx.save();
             ctx.translate(sunX, sunY);
-            // Sun glow
-            const gradient = ctx.createRadialGradient(0, 0, 4, 0, 0, 24);
+            const gradient = ctx.createRadialGradient(0, 0, 4, 0, 0, 22);
             gradient.addColorStop(0, 'rgba(251, 191, 36, 0.8)');
             gradient.addColorStop(1, 'rgba(251, 191, 36, 0)');
             ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.arc(0, 0, 24, 0, Math.PI * 2);
+            ctx.arc(0, 0, 22, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.beginPath();
-            ctx.arc(0, 0, 16, 0, Math.PI * 2);
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.fillStyle = '#1e293b';
             ctx.fill();
             ctx.strokeStyle = '#f59e0b';
             ctx.lineWidth = 2.5;
             ctx.stroke();
 
-            ctx.font = 'bold 18px "Cinzel", serif';
+            ctx.font = 'bold 16px "Cinzel", serif';
             ctx.fillStyle = '#f59e0b';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('☉', 0, 0);
 
-            // Sun label
             ctx.font = '11px "Plus Jakarta Sans", sans-serif';
             ctx.fillStyle = '#fbbf24';
-            ctx.fillText('Солнце', 0, 26);
+            ctx.fillText('Солнце', 0, 24);
             ctx.restore();
 
             // 5. Draw Moon (☽)
             ctx.save();
             ctx.translate(moonX, moonY);
             ctx.beginPath();
-            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.arc(0, 0, 12, 0, Math.PI * 2);
             ctx.fillStyle = '#1e293b';
             ctx.fill();
             ctx.strokeStyle = '#cbd5e1';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            ctx.font = 'bold 16px "Cinzel", serif';
+            ctx.font = 'bold 14px "Cinzel", serif';
             ctx.fillStyle = '#e2e8f0';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('☽', 0, 0);
 
-            // Moon label
             ctx.font = '11px "Plus Jakarta Sans", sans-serif';
             ctx.fillStyle = '#cbd5e1';
-            ctx.fillText('Луна', 0, 24);
+            ctx.fillText('Луна', 0, 22);
+            ctx.restore();
+
+            // 6. Draw Mars (♂)
+            ctx.save();
+            ctx.translate(marsXScaled, marsYScaled);
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.font = 'bold 16px "Cinzel", serif';
+            ctx.fillStyle = '#ef4444';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('♂', 0, 0);
+
+            ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#f87171';
+            ctx.fillText('Марс', 0, 24);
             ctx.restore();
 
             ctx.restore();
