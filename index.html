@@ -1,386 +1,510 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Геоцентрическая система с Луной и Зодиаком</title>
-    <!-- Tailwind CSS -->
+    <title>Геоцентрическая система Птолемея</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        cosmos: {
+                            900: '#070913',
+                            800: '#0f172a',
+                            700: '#1e293b',
+                            600: '#334155',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            300: '#fde68a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            background-color: #030712;
-            color: #f3f4f6;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #070913 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
         }
-        canvas {
-            touch-action: none;
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        .glow-gold {
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(245, 158, 11, 0.2);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-4">
+<body class="min-h-screen flex flex-col justify-between selection:bg-amber-500 selection:text-black">
 
-    <!-- Header -->
-    <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between py-3 px-6 bg-gray-900/80 backdrop-blur-md rounded-2xl border border-gray-800 shadow-xl mb-4">
-        <div class="flex items-center space-x-3 mb-2 md:mb-0">
-            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xl shadow-lg shadow-amber-500/10">
-                <i class="fa-solid fa-moon"></i>
+    <header class="w-full glass-panel border-b border-amber-500/20 py-4 px-6 sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full border border-amber-500/50 flex items-center justify-center bg-amber-500/10 text-amber-400 font-cinzel text-xl font-bold shadow-lg">
+                ♁
             </div>
             <div>
-                <h1 class="text-lg font-bold tracking-wide">Геоцентрическая модель</h1>
-                <p class="text-xs text-gray-400">Наблюдатель в центре, Солнце и Луна на орбитах</p>
+                <h1 class="font-cinzel text-xl font-bold text-amber-400 tracking-wider">Геоцентрическая система Птолемея</h1>
+                <p class="text-xs text-slate-400">Интерактивная модель небесной сферы и светил</p>
             </div>
         </div>
 
-        <!-- Info / Current Date Display -->
-        <div class="flex items-center space-x-4 bg-gray-950/60 px-4 py-2 rounded-xl border border-gray-800/80 text-sm">
-            <div>
-                <span class="text-gray-400 text-xs block">Дата:</span>
-                <span id="dateDisplay" class="font-semibold text-amber-300">--.--.----</span>
-            </div>
-            <div class="border-l border-gray-800 pl-4">
-                <span class="text-gray-400 text-xs block">Знак Солнца:</span>
-                <span id="zodiacDisplay" class="font-semibold text-indigo-300">--</span>
+        <div class="flex items-center gap-4 bg-cosmos-900/80 px-4 py-2 rounded-xl border border-amber-500/20">
+            <div class="text-right">
+                <div class="text-xs text-slate-400 uppercase tracking-wider font-cinzel">Текущая дата симуляции</div>
+                <div id="header-date" class="text-sm font-semibold text-amber-300">02.10.2026</div>
             </div>
         </div>
     </header>
 
-    <!-- Main Canvas Container -->
-    <main class="w-full max-w-5xl flex-grow flex items-center justify-center relative bg-gray-950/50 rounded-3xl border border-gray-800/60 overflow-hidden shadow-2xl min-h-[500px]">
-        <canvas id="spaceCanvas" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></canvas>
+    <main class="flex-grow flex flex-col lg:flex-row items-center justify-center p-4 gap-6 max-w-[1600px] mx-auto w-full">
         
-        <!-- Floating controls overlay -->
-        <div class="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-gray-900/90 backdrop-blur-md p-4 rounded-2xl border border-gray-800 shadow-2xl flex flex-col space-y-3">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Управление симуляцией</span>
-                <button id="todayBtn" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg transition font-medium shadow-sm">
-                    Сегодня
-                </button>
-            </div>
+        <!-- Interactive Canvas Area -->
+        <div class="relative flex-grow flex items-center justify-center w-full max-w-[750px] aspect-square bg-cosmos-950/60 rounded-3xl border border-amber-500/30 shadow-2xl p-4 overflow-hidden group">
+            
+            <!-- Background starfield effect -->
+            <div class="absolute inset-0 bg-[radial-gradient(#ffffff15_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none"></div>
 
-            <!-- Date Picker -->
-            <div class="flex flex-col space-y-1">
-                <label for="datePicker" class="text-xs text-gray-400">Выбрать дату:</label>
-                <input type="date" id="datePicker" class="bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
-            </div>
+            <canvas id="ptolemyCanvas" class="w-full h-full cursor-grab active:cursor-grabbing z-10"></canvas>
 
-            <!-- Play / Pause & Speed -->
-            <div class="flex items-center space-x-2 pt-1">
-                <button id="playPauseBtn" class="flex-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20">
-                    <i id="playPauseIcon" class="fa-solid fa-pause"></i>
-                    <span id="playPauseText" class="text-xs">Пауза</span>
-                </button>
-                <button id="resetViewBtn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 px-3 rounded-xl transition text-xs font-medium" title="Центрировать">
-                    <i class="fa-solid fa-arrows-to-dot"></i>
-                </button>
-            </div>
-
-            <!-- Speed Slider (1 to 100 with step 10) -->
-            <div class="flex flex-col space-y-1">
-                <div class="flex justify-between text-xs text-gray-400">
-                    <span>Скорость:</span>
-                    <span id="speedVal" class="text-amber-400 font-mono">10x</span>
-                </div>
-                <input type="range" id="speedRange" min="1" max="100" step="10" value="10" class="accent-amber-500 cursor-pointer">
+            <!-- Center Legend Overlay -->
+            <div class="absolute bottom-6 left-6 glass-panel px-4 py-3 rounded-2xl text-xs space-y-1 z-20 pointer-events-none shadow-xl">
+                <div class="text-amber-400 font-cinzel font-bold mb-1">Условные обозначения:</div>
+                <div class="flex items-center gap-2"><span class="text-blue-400 font-bold">♁</span> — Земля (Центр)</div>
+                <div class="flex items-center gap-2"><span class="text-amber-400 font-bold">☉</span> — Солнце (Соединено прямой)</div>
+                <div class="flex items-center gap-2"><span class="text-slate-200 font-bold">☽</span> — Луна (Соединено прямой)</div>
             </div>
         </div>
+
+        <!-- Control & Info Panel -->
+        <div class="w-full lg:w-[420px] flex flex-col gap-6">
+            
+            <!-- Live Status Panel -->
+            <div class="glass-panel p-6 rounded-3xl shadow-xl space-y-4">
+                <h2 class="font-cinzel text-lg font-bold text-amber-400 border-b border-amber-500/20 pb-2 flex items-center justify-between">
+                    <span>Индикатор созвездий</span>
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" id="status-dot"></span>
+                </h2>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-cosmos-900/60 p-4 rounded-2xl border border-amber-500/10">
+                        <div class="text-xs text-slate-400 font-cinzel mb-1">Солнце (☉)</div>
+                        <div id="sun-zodiac" class="text-base font-bold text-amber-300 flex items-center gap-2">
+                            <span class="text-xl">♎</span> Весы
+                        </div>
+                        <div id="sun-deg" class="text-xs text-slate-400 mt-1">0.0°</div>
+                    </div>
+                    <div class="bg-cosmos-900/60 p-4 rounded-2xl border border-amber-500/10">
+                        <div class="text-xs text-slate-400 font-cinzel mb-1">Луна (☽)</div>
+                        <div id="moon-zodiac" class="text-base font-bold text-slate-200 flex items-center gap-2">
+                            <span class="text-xl">♈</span> Овен
+                        </div>
+                        <div id="moon-deg" class="text-xs text-slate-400 mt-1">0.0°</div>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-400 italic bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
+                    💡 <span class="font-semibold text-amber-300">Птолемеева астрономия:</span> Земля недвижима в центре. Солнце и Луна обращаются по эксцентрическим кругам с прямыми соединительными линиями, а по внешнему кольцу расположены знаки Зодиака (Овен строго справа на 0°).
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="glass-panel p-6 rounded-3xl shadow-xl space-y-5">
+                <h2 class="font-cinzel text-lg font-bold text-amber-400 border-b border-amber-500/20 pb-2">Управление симуляцией</h2>
+
+                <!-- Play/Pause & Reset -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="btn-toggle" class="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold transition shadow-lg shadow-amber-500/20 active:scale-95">
+                        <span id="btn-toggle-icon">⏸</span> <span id="btn-toggle-text">Пауза</span>
+                    </button>
+                    <button id="btn-reset" class="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-cosmos-800 hover:bg-cosmos-700 text-amber-300 border border-amber-500/30 transition active:scale-95">
+                        <span>🔄</span> Сброс
+                    </button>
+                </div>
+
+                <!-- Speed Slider -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-cinzel">
+                        <span class="text-slate-400">Скорость времени:</span>
+                        <span id="speed-label" class="text-amber-400 font-bold">1.0x</span>
+                    </div>
+                    <input type="range" id="speed-slider" min="0.1" max="100" step="0.1" value="1" class="w-full accent-amber-500 cursor-pointer bg-cosmos-800 rounded-lg h-2">
+                    <div class="flex justify-between text-[10px] text-slate-500">
+                        <span>0.1x</span>
+                        <span>10x</span>
+                        <span>50x</span>
+                        <span>100x</span>
+                    </div>
+                </div>
+
+                <!-- Date Picker & Today Button -->
+                <div class="space-y-3 pt-2 border-t border-amber-500/20">
+                    <div class="text-xs font-cinzel text-slate-400">Выбор даты:</div>
+                    <div class="flex gap-2">
+                        <input type="date" id="date-picker" class="flex-grow bg-cosmos-900 border border-amber-500/30 rounded-xl px-3 py-2 text-sm text-amber-300 focus:outline-none focus:border-amber-400">
+                        <button id="btn-today" class="bg-cosmos-800 hover:bg-cosmos-700 text-amber-300 border border-amber-500/30 px-4 py-2 rounded-xl text-xs font-semibold transition active:scale-95">
+                            Сегодня
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </main>
 
-    <!-- Footer help text -->
-    <footer class="w-full max-w-5xl text-center py-3 text-xs text-gray-500">
-        Масштабирование колесиком • Перемещение зажатой кнопкой • Знак Овна (♈) зафиксирован справа.
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-amber-500/10 font-cinzel">
+        Геоцентрическая модель Птолемея • Научно-образовательная визуализация
     </footer>
 
     <script>
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
-
-        const playPauseBtn = document.getElementById('playPauseBtn');
-        const playPauseIcon = document.getElementById('playPauseIcon');
-        const playPauseText = document.getElementById('playPauseText');
-        const speedRange = document.getElementById('speedRange');
-        const speedVal = document.getElementById('speedVal');
-        const datePicker = document.getElementById('datePicker');
-        const todayBtn = document.getElementById('todayBtn');
-        const resetViewBtn = document.getElementById('resetViewBtn');
-        const dateDisplay = document.getElementById('dateDisplay');
-        const zodiacDisplay = document.getElementById('zodiacDisplay');
-
-        // Zodiac signs (12 signs, Aries (♈) at 0 degrees / Right)
-        const zodiacSigns = [
-            { name: "Овен", symbol: "♈" },
-            { name: "Телец", symbol: "♉" },
-            { name: "Близнецы", symbol: "♊" },
-            { name: "Рак", symbol: "♋" },
-            { name: "Лев", symbol: "♌" },
-            { name: "Дева", symbol: "♍" },
-            { name: "Весы", symbol: "♎" },
-            { name: "Скорпион", symbol: "♏" },
-            { name: "Стрелец", symbol: "♐" },
-            { name: "Козерог", symbol: "♑" },
-            { name: "Водолей", symbol: "♒" },
-            { name: "Рыбы", symbol: "♓" }
+        // Zodiac signs definitions in clockwise order starting from Aries at 3 o'clock (0 degrees)
+        const ZODIAC_SIGNS = [
+            { name: "Овен", symbol: "♈", startDeg: 0, element: "Огонь" },
+            { name: "Телец", symbol: "♉", startDeg: 30, element: "Земля" },
+            { name: "Близнецы", symbol: "♊", startDeg: 60, element: "Воздух" },
+            { name: "Рак", symbol: "♋", startDeg: 90, element: "Вода" },
+            { name: "Лев", symbol: "♌", startDeg: 120, element: "Огонь" },
+            { name: "Дева", symbol: "♍", startDeg: 150, element: "Земля" },
+            { name: "Весы", symbol: "♎", startDeg: 180, element: "Воздух" },
+            { name: "Скорпион", symbol: "♏", startDeg: 210, element: "Вода" },
+            { name: "Стрелец", symbol: "♐", startDeg: 240, element: "Огонь" },
+            { name: "Козерог", symbol: "♑", startDeg: 270, element: "Земля" },
+            { name: "Водолей", symbol: "♒", startDeg: 300, element: "Воздух" },
+            { name: "Рыбы", symbol: "♓", startDeg: 330, element: "Вода" }
         ];
 
-        let isPlaying = true;
-        let timeSpeed = 10.0;
-        let scale = 1.0;
-        let panX = 0;
-        let panY = 0;
-        let isDragging = false;
-        let startX, startY;
+        // Simulation state
+        let isRunning = true;
+        let timeSpeed = 1.0; // multiplier
+        
+        // Initial simulation date: October 2, 2026 (or current real date)
+        const defaultDate = new Date(2026, 9, 2); 
+        let simulationDate = new Date(defaultDate.getTime());
 
-        let currentDate = new Date();
+        // Epoch reference for orbital calculations (J2000.0 approx or standard offset)
+        const epochDate = new Date(2000, 0, 1);
 
-        function formatDateToInput(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        datePicker.value = formatDateToInput(currentDate);
+        // Canvas setup
+        const canvas = document.getElementById('ptolemyCanvas');
+        const ctx = canvas.getContext('2d');
 
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        function getSunAngle(date) {
-            const year = date.getFullYear();
-            const vernalEquinox = new Date(year, 2, 21); // 21 марта - весеннее равноденствие (Овен)
-            const diffDays = (date - vernalEquinox) / (1000 * 60 * 60 * 24);
-            const angle = (diffDays / 365.2425) * 2 * Math.PI;
-            return angle;
+        // Calculate astronomical positions based on days elapsed
+        function getCelestialPositions(date) {
+            const diffTime = date - epochDate;
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+            // Mean motions (degrees per day) in geocentric view
+            // Sun completes 360 deg in ~365.2425 days (~0.9856 deg/day)
+            // Moon completes 360 deg relative to Sun/Zodiac in ~27.32 days (~13.176 deg/day)
+            const sunDeg = (280.46 + 0.9856474 * diffDays) % 360;
+            const moonDeg = (218.32 + 13.176396 * diffDays) % 360;
+
+            return {
+                sun: (sunDeg + 360) % 360,
+                moon: (moonDeg + 360) % 360
+            };
         }
 
-        function getZodiacSign(angle) {
-            let deg = (angle * (180 / Math.PI)) % 360;
-            if (deg < 0) deg += 360;
-            const index = Math.floor(deg / 30) % 12;
-            return zodiacSigns[index];
+        function getZodiacForDegree(deg) {
+            let normalized = (deg % 360 + 360) % 360;
+            // In our layout: Aries (0°) is at 3 o'clock (0 rad), moving clockwise (+deg)
+            let index = Math.floor(normalized / 30) % 12;
+            return ZODIAC_SIGNS[index];
         }
 
-        // Mouse & Touch interactions
-        canvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
-        });
+        // DOM Elements
+        const headerDateEl = document.getElementById('header-date');
+        const sunZodiacEl = document.getElementById('sun-zodiac');
+        const sunDegEl = document.getElementById('sun-deg');
+        const moonZodiacEl = document.getElementById('moon-zodiac');
+        const moonDegEl = document.getElementById('moon-deg');
+        const speedSlider = document.getElementById('speed-slider');
+        const speedLabel = document.getElementById('speed-label');
+        const btnToggle = document.getElementById('btn-toggle');
+        const btnToggleIcon = document.getElementById('btn-toggle-icon');
+        const btnToggleText = document.getElementById('btn-toggle-text');
+        const btnReset = document.getElementById('btn-reset');
+        const datePicker = document.getElementById('date-picker');
+        const btnToday = document.getElementById('btn-today');
 
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            panX = e.clientX - startX;
-            panY = e.clientY - startY;
-        });
+        // Set initial date picker value
+        function updateDatePickerInput() {
+            const yyyy = simulationDate.getFullYear();
+            const mm = String(simulationDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(simulationDate.getDate()).padStart(2, '0');
+            datePicker.value = `${yyyy}-${mm}-${dd}`;
+        }
+        updateDatePickerInput();
 
-        window.addEventListener('mouseup', () => { isDragging = false; });
-
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const zoomIntensity = 0.1;
-            if (e.deltaY < 0) {
-                scale *= (1 + zoomIntensity);
-            } else {
-                scale /= (1 + zoomIntensity);
-            }
-            scale = Math.max(0.4, Math.min(3.0, scale));
-        }, { passive: false });
-
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                startX = e.touches[0].clientX - panX;
-                startY = e.touches[0].clientY - panY;
-            }
-        });
-        window.addEventListener('touchmove', (e) => {
-            if (!isDragging || e.touches.length !== 1) return;
-            panX = e.touches[0].clientX - startX;
-            panY = e.touches[0].clientY - startY;
-        });
-        window.addEventListener('touchend', () => { isDragging = false; });
-
-        playPauseBtn.addEventListener('click', () => {
-            isPlaying = !isPlaying;
-            if (isPlaying) {
-                playPauseIcon.className = "fa-solid fa-pause";
-                playPauseText.textContent = "Пауза";
-            } else {
-                playPauseIcon.className = "fa-solid fa-play";
-                playPauseText.textContent = "Старт";
-            }
-        });
-
-        speedRange.addEventListener('input', (e) => {
+        // UI Event Listeners
+        speedSlider.addEventListener('input', (e) => {
             timeSpeed = parseFloat(e.target.value);
-            speedVal.textContent = timeSpeed + 'x';
+            speedLabel.textContent = timeSpeed.toFixed(1) + 'x';
+        });
+
+        btnToggle.addEventListener('click', () => {
+            isRunning = !isRunning;
+            if (isRunning) {
+                btnToggleIcon.textContent = '⏸';
+                btnToggleText.textContent = 'Пауза';
+            } else {
+                btnToggleIcon.textContent = '▶';
+                btnToggleText.textContent = 'Старт';
+            }
+        });
+
+        btnReset.addEventListener('click', () => {
+            simulationDate = new Date(defaultDate.getTime());
+            updateDatePickerInput();
+        });
+
+        btnToday.addEventListener('click', () => {
+            simulationDate = new Date(); // Real today
+            updateDatePickerInput();
         });
 
         datePicker.addEventListener('change', (e) => {
             if (e.target.value) {
-                currentDate = new Date(e.target.value);
+                const parts = e.target.value.split('-');
+                simulationDate = new Date(parts[0], parts[1] - 1, parts[2]);
             }
         });
 
-        todayBtn.addEventListener('click', () => {
-            currentDate = new Date();
-            datePicker.value = formatDateToInput(currentDate);
-        });
-
-        resetViewBtn.addEventListener('click', () => {
-            scale = 1.0;
-            panX = 0;
-            panY = 0;
-        });
-
+        // Main Animation & Render Loop
         let lastTimestamp = performance.now();
 
         function animate(timestamp) {
-            const dt = (timestamp - lastTimestamp) / 1000;
+            const deltaTime = timestamp - lastTimestamp;
             lastTimestamp = timestamp;
 
-            if (isPlaying) {
-                const daysToAdd = dt * (timeSpeed * 0.5);
-                currentDate.setDate(currentDate.getDate() + daysToAdd);
-                datePicker.value = formatDateToInput(currentDate);
+            if (isRunning) {
+                // Advance simulation time: 1 real second = 1 simulation day * timeSpeed
+                const daysToAdd = (deltaTime / 1000) * timeSpeed;
+                simulationDate.setTime(simulationDate.getTime() + daysToAdd * 24 * 60 * 60 * 1000);
+                updateDatePickerInput();
             }
 
+            // Calculations
+            const positions = getCelestialPositions(simulationDate);
+            const sunZodiac = getZodiacForDegree(positions.sun);
+            const moonZodiac = getZodiacForDegree(positions.moon);
+
+            // Update UI Info
             const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            dateDisplay.textContent = currentDate.toLocaleDateString('ru-RU', options);
+            headerDateEl.textContent = simulationDate.toLocaleDateString('ru-RU', options);
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            sunZodiacEl.innerHTML = `<span class="text-xl">${sunZodiac.symbol}</span> ${sunZodiac.name}`;
+            sunDegEl.textContent = `${positions.sun.toFixed(1)}° (${sunZodiac.name})`;
 
-            const centerX = canvas.width / 2 + panX;
-            const centerY = canvas.height / 2 + panY;
-            const minDim = Math.min(canvas.width, canvas.height);
-            const baseRadius = minDim * 0.35 * scale;
+            moonZodiacEl.innerHTML = `<span class="text-xl">${moonZodiac.symbol}</span> ${moonZodiac.name}`;
+            moonDegEl.textContent = `${positions.moon.toFixed(1)}° (${moonZodiac.name})`;
 
-            const sunOrbitRadius = baseRadius * 0.75;
-            const moonOrbitRadius = baseRadius * 0.35;
-            const zodiacRadius = baseRadius * 1.05;
-
-            // Zodiac Circle Ring & Signs
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, zodiacRadius, 0, 2 * Math.PI);
-            ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            for (let i = 0; i < 12; i++) {
-                const angle = (i * 30) * (Math.PI / 180);
-                const x = centerX + zodiacRadius * Math.cos(angle);
-                const y = centerY + zodiacRadius * Math.sin(angle);
-
-                ctx.beginPath();
-                ctx.moveTo(centerX + (zodiacRadius - 10) * Math.cos(angle), centerY + (zodiacRadius - 10) * Math.sin(angle));
-                ctx.lineTo(centerX + (zodiacRadius + 10) * Math.cos(angle), centerY + (zodiacRadius + 10) * Math.sin(angle));
-                ctx.strokeStyle = 'rgba(129, 140, 248, 0.6)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.font = `${Math.max(16, 20 * scale)}px Arial, sans-serif`;
-                ctx.fillStyle = i === 0 ? '#f59e0b' : '#9ca3af';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(zodiacSigns[i].symbol, 0, 0);
-                ctx.restore();
-            }
-
-            const sunAngle = getSunAngle(currentDate);
-            const sunX = centerX + sunOrbitRadius * Math.cos(sunAngle);
-            const sunY = centerY + sunOrbitRadius * Math.sin(sunAngle);
-
-            const currentZodiac = getZodiacSign(sunAngle);
-            zodiacDisplay.textContent = `${currentZodiac.symbol} ${currentZodiac.name}`;
-
-            const yearStart = new Date(currentDate.getFullYear(), 0, 1);
-            const daysPassed = (currentDate - yearStart) / (1000 * 60 * 60 * 24);
-            const moonAngle = (daysPassed / 27.32) * 2 * Math.PI;
-            const moonX = centerX + moonOrbitRadius * Math.cos(moonAngle);
-            const moonY = centerY + moonOrbitRadius * Math.sin(moonAngle);
-
-            // Solid Ray from Center to Moon
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(moonX, moonY);
-            ctx.strokeStyle = 'rgba(209, 213, 219, 0.5)';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-
-            // Solid Ray from Center through Sun to Zodiac Ring
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            const projX = centerX + zodiacRadius * Math.cos(sunAngle);
-            const projY = centerY + zodiacRadius * Math.sin(sunAngle);
-            ctx.lineTo(projX, projY);
-            ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
-            ctx.lineWidth = 2.5;
-            ctx.stroke();
-
-            // Central Observer
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
-            ctx.fillStyle = '#60a5fa';
-            ctx.shadowColor = '#3b82f6';
-            ctx.shadowBlur = 12;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.font = '11px sans-serif';
-            ctx.fillStyle = '#93c5fd';
-            ctx.textAlign = 'center';
-            ctx.fillText("Наблюдатель", centerX, centerY + 20);
-
-            // Moon
-            ctx.beginPath();
-            ctx.arc(moonX, moonY, 7 * Math.max(0.7, scale * 0.8), 0, 2 * Math.PI);
-            ctx.fillStyle = '#d1d5db';
-            ctx.shadowColor = '#9ca3af';
-            ctx.shadowBlur = 8;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.font = '10px sans-serif';
-            ctx.fillStyle = '#9ca3af';
-            ctx.textAlign = 'center';
-            ctx.fillText("Луна", moonX, moonY - 14);
-
-            // Sun
-            const sunRadius = 14 * Math.max(0.7, scale * 0.8);
-            const gradient = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, sunRadius * 2.5);
-            gradient.addColorStop(0, 'rgba(251, 191, 36, 1)');
-            gradient.addColorStop(0.5, 'rgba(245, 158, 11, 0.5)');
-            gradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
-
-            ctx.beginPath();
-            ctx.arc(sunX, sunY, sunRadius * 2.5, 0, 2 * Math.PI);
-            ctx.fillStyle = gradient;
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(sunX, sunY, sunRadius, 0, 2 * Math.PI);
-            ctx.fillStyle = '#fbbf24';
-            ctx.shadowColor = '#f59e0b';
-            ctx.shadowBlur = 25;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            ctx.font = '12px sans-serif';
-            ctx.fillStyle = '#fde68a';
-            ctx.textAlign = 'center';
-            ctx.fillText("Солнце", sunX, sunY - sunRadius - 8);
+            // Render Canvas Scene
+            renderScene(positions);
 
             requestAnimationFrame(animate);
         }
 
-        requestAnimationFrame(animate);
+        function renderScene(pos) {
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            ctx.clearRect(0, 0, width, height);
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) * 0.42;
+
+            // 1. Draw Zodiac Circle & Outer Ring
+            ctx.save();
+            ctx.translate(centerX, centerY);
+
+            // Outer decorative ring
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Inner boundary for zodiac symbols
+            const zodiacInnerRadius = radius * 0.78;
+            ctx.beginPath();
+            ctx.arc(0, 0, zodiacInnerRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.15)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Draw 12 Zodiac Signs (Aries at 3 o'clock / 0 deg, clockwise)
+            ZODIAC_SIGNS.forEach((sign, i) => {
+                const angleStart = (sign.startDeg * Math.PI) / 180;
+                const angleMid = ((sign.startDeg + 15) * Math.PI) / 180;
+                const angleEnd = ((sign.startDeg + 30) * Math.PI) / 180;
+
+                // Dividing line
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(angleStart) * zodiacInnerRadius, Math.sin(angleStart) * zodiacInnerRadius);
+                ctx.lineTo(Math.cos(angleStart) * radius, Math.sin(angleStart) * radius);
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Symbol placement at mid angle
+                const symbolRadius = (radius + zodiacInnerRadius) / 2;
+                const sx = Math.cos(angleMid) * symbolRadius;
+                const sy = Math.sin(angleMid) * symbolRadius;
+
+                ctx.save();
+                ctx.translate(sx, sy);
+                // Rotate text to face upright/tangent nicely
+                ctx.font = 'bold 20px "Cinzel", serif';
+                ctx.fillStyle = '#fbbf24';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(sign.symbol, 0, 0);
+                ctx.restore();
+            });
+
+            // 2. Draw Direct Lines from Earth (Center) to Sun and Moon
+            // NO orbits (circles) are displayed as per requirements!
+            
+            // Sun coordinates (e.g. at 65% of radius)
+            const sunDist = radius * 0.62;
+            const sunRad = (pos.sun * Math.PI) / 180;
+            const sunX = Math.cos(sunRad) * sunDist;
+            const sunY = Math.sin(sunRad) * sunDist;
+
+            // Moon coordinates (e.g. at 42% of radius)
+            const moonDist = radius * 0.40;
+            const moonRad = (pos.moon * Math.PI) / 180;
+            const moonX = Math.cos(moonRad) * moonDist;
+            const moonY = Math.sin(moonRad) * moonDist;
+
+            // Line to Sun (solid golden line)
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(sunX, sunY);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Line to Moon (solid silvery line)
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(moonX, moonY);
+            ctx.strokeStyle = 'rgba(226, 232, 240, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 3. Draw Earth at Center (♁)
+            ctx.beginPath();
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.font = 'bold 18px "Cinzel", serif';
+            ctx.fillStyle = '#60a5fa';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('♁', 0, 0);
+
+            // Earth label
+            ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText('Земля', 0, 28);
+
+            // 4. Draw Sun (☉)
+            ctx.save();
+            ctx.translate(sunX, sunY);
+            // Sun glow
+            const gradient = ctx.createRadialGradient(0, 0, 4, 0, 0, 24);
+            gradient.addColorStop(0, 'rgba(251, 191, 36, 0.8)');
+            gradient.addColorStop(1, 'rgba(251, 191, 36, 0)');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, 24, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, 16, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            ctx.font = 'bold 18px "Cinzel", serif';
+            ctx.fillStyle = '#f59e0b';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('☉', 0, 0);
+
+            // Sun label
+            ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillText('Солнце', 0, 26);
+            ctx.restore();
+
+            // 5. Draw Moon (☽)
+            ctx.save();
+            ctx.translate(moonX, moonY);
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.font = 'bold 16px "Cinzel", serif';
+            ctx.fillStyle = '#e2e8f0';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('☽', 0, 0);
+
+            // Moon label
+            ctx.font = '11px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillText('Луна', 0, 24);
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        // Start animation loop
+        requestAnimationFrame((ts) => {
+            lastTimestamp = ts;
+            requestAnimationFrame(animate);
+        });
     </script>
 </body>
 </html>
