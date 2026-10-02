@@ -76,25 +76,13 @@
                 </button>
             </div>
 
-            <!-- Speed Slider -->
+            <!-- Speed Slider (1 to 100 with step 10) -->
             <div class="flex flex-col space-y-1">
                 <div class="flex justify-between text-xs text-gray-400">
                     <span>Скорость:</span>
-                    <span id="speedVal" class="text-amber-400 font-mono">5.0x</span>
+                    <span id="speedVal" class="text-amber-400 font-mono">10x</span>
                 </div>
-                <input type="range" id="speedRange" min="0.1" max="50" step="0.5" value="5" class="accent-amber-500 cursor-pointer">
-            </div>
-
-            <!-- Options Checkboxes -->
-            <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-gray-300 border-t border-gray-800/80 pt-3">
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" id="showOrbits" checked class="accent-indigo-500 rounded">
-                    <span>Орбиты</span>
-                </label>
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" id="showRays" checked class="accent-indigo-500 rounded">
-                    <span>Лучи / Проекция</span>
-                </label>
+                <input type="range" id="speedRange" min="1" max="100" step="10" value="10" class="accent-amber-500 cursor-pointer">
             </div>
         </div>
     </main>
@@ -113,8 +101,6 @@
         const playPauseText = document.getElementById('playPauseText');
         const speedRange = document.getElementById('speedRange');
         const speedVal = document.getElementById('speedVal');
-        const showOrbitsCheck = document.getElementById('showOrbits');
-        const showRaysCheck = document.getElementById('showRays');
         const datePicker = document.getElementById('datePicker');
         const todayBtn = document.getElementById('todayBtn');
         const resetViewBtn = document.getElementById('resetViewBtn');
@@ -138,7 +124,7 @@
         ];
 
         let isPlaying = true;
-        let timeSpeed = 5.0;
+        let timeSpeed = 10.0;
         let scale = 1.0;
         let panX = 0;
         let panY = 0;
@@ -232,7 +218,7 @@
 
         speedRange.addEventListener('input', (e) => {
             timeSpeed = parseFloat(e.target.value);
-            speedVal.textContent = timeSpeed.toFixed(1) + 'x';
+            speedVal.textContent = timeSpeed + 'x';
         });
 
         datePicker.addEventListener('change', (e) => {
@@ -259,7 +245,7 @@
             lastTimestamp = timestamp;
 
             if (isPlaying) {
-                const daysToAdd = dt * timeSpeed * 3; // Ускоренный шаг для плавности
+                const daysToAdd = dt * (timeSpeed * 0.5);
                 currentDate.setDate(currentDate.getDate() + daysToAdd);
                 datePicker.value = formatDateToInput(currentDate);
             }
@@ -275,31 +261,26 @@
             const baseRadius = minDim * 0.35 * scale;
 
             const sunOrbitRadius = baseRadius * 0.75;
-            const moonOrbitRadius = baseRadius * 0.33;
+            const moonOrbitRadius = baseRadius * 0.35;
             const zodiacRadius = baseRadius * 1.05;
 
-            // Zodiac Circle
-            if (showOrbitsCheck.checked) {
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, zodiacRadius, 0, 2 * Math.PI);
-                ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
-                ctx.lineWidth = 1.5;
-                ctx.setLineDash([4, 4]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
+            // Zodiac Circle Ring & Signs
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, zodiacRadius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-            // Zodiac Signs
             for (let i = 0; i < 12; i++) {
                 const angle = (i * 30) * (Math.PI / 180);
                 const x = centerX + zodiacRadius * Math.cos(angle);
                 const y = centerY + zodiacRadius * Math.sin(angle);
 
                 ctx.beginPath();
-                ctx.moveTo(centerX + (zodiacRadius - 8) * Math.cos(angle), centerY + (zodiacRadius - 8) * Math.sin(angle));
-                ctx.lineTo(centerX + (zodiacRadius + 8) * Math.cos(angle), centerY + (zodiacRadius + 8) * Math.sin(angle));
-                ctx.strokeStyle = 'rgba(129, 140, 248, 0.5)';
-                ctx.lineWidth = 1.5;
+                ctx.moveTo(centerX + (zodiacRadius - 10) * Math.cos(angle), centerY + (zodiacRadius - 10) * Math.sin(angle));
+                ctx.lineTo(centerX + (zodiacRadius + 10) * Math.cos(angle), centerY + (zodiacRadius + 10) * Math.sin(angle));
+                ctx.strokeStyle = 'rgba(129, 140, 248, 0.6)';
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
                 ctx.save();
@@ -310,24 +291,6 @@
                 ctx.textBaseline = 'middle';
                 ctx.fillText(zodiacSigns[i].symbol, 0, 0);
                 ctx.restore();
-            }
-
-            // Moon Orbit
-            if (showOrbitsCheck.checked) {
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, moonOrbitRadius, 0, 2 * Math.PI);
-                ctx.strokeStyle = 'rgba(156, 163, 175, 0.2)';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-            }
-
-            // Sun Orbit
-            if (showOrbitsCheck.checked) {
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, sunOrbitRadius, 0, 2 * Math.PI);
-                ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
             }
 
             const sunAngle = getSunAngle(currentDate);
@@ -343,19 +306,23 @@
             const moonX = centerX + moonOrbitRadius * Math.cos(moonAngle);
             const moonY = centerY + moonOrbitRadius * Math.sin(moonAngle);
 
-            // Bright Sun Rays / Projection
-            if (showRaysCheck.checked) {
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                const projX = centerX + (zodiacRadius + 25) * Math.cos(sunAngle);
-                const projY = centerY + (zodiacRadius + 25) * Math.sin(sunAngle);
-                ctx.lineTo(projX, projY);
-                ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
-                ctx.lineWidth = 2.5;
-                ctx.setLineDash([6, 4]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
+            // Solid Ray from Center to Moon
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(moonX, moonY);
+            ctx.strokeStyle = 'rgba(209, 213, 219, 0.5)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Solid Ray from Center through Sun to Zodiac Ring
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            const projX = centerX + zodiacRadius * Math.cos(sunAngle);
+            const projY = centerY + zodiacRadius * Math.sin(sunAngle);
+            ctx.lineTo(projX, projY);
+            ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
 
             // Central Observer
             ctx.beginPath();
