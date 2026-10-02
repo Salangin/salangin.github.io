@@ -3,484 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Геоцентрическая система Птолемея и Зодиак</title>
-    <!-- Подключаем Tailwind CSS -->
+    <title>Геоцентрическая система с Луной и Зодиаком</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключаем шрифты Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
             background-color: #030712;
             color: #f3f4f6;
-            overflow-x: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
         }
-        input[type=range] {
-            accent-color: #ec4899;
+        canvas {
+            touch-action: none;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-between p-3 md:p-6">
+<body class="min-h-screen flex flex-col items-center justify-between p-4">
 
-    <!-- Шапка приложения -->
-    <header class="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between pb-3 border-b border-gray-800 gap-2">
-        <div>
-            <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-400 via-purple-300 to-indigo-200 bg-clip-text text-transparent">
-                Геоцентрическая система и Зодиак
-            </h1>
-            <p class="text-xs text-gray-400 mt-0.5">Земля в центре Вселенной • Овен справа (точка весеннего равноденствия)</p>
+    <!-- Header -->
+    <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between py-3 px-6 bg-gray-900/80 backdrop-blur-md rounded-2xl border border-gray-800 shadow-xl mb-4">
+        <div class="flex items-center space-x-3 mb-2 md:mb-0">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xl shadow-lg shadow-amber-500/10">
+                <i class="fa-solid fa-moon"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide">Геоцентрическая модель</h1>
+                <p class="text-xs text-gray-400">Наблюдатель в центре, Солнце и Луна на орбитах</p>
+            </div>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-950/65 text-purple-300 border border-purple-800/50">
-                <span class="w-1.5 h-1.5 mr-1.5 bg-pink-400 rounded-full animate-pulse"></span>
-                <span id="liveStatusText">Реальная дата</span>
-            </span>
+
+        <!-- Info / Current Date Display -->
+        <div class="flex items-center space-x-4 bg-gray-950/60 px-4 py-2 rounded-xl border border-gray-800/80 text-sm">
+            <div>
+                <span class="text-gray-400 text-xs block">Дата:</span>
+                <span id="dateDisplay" class="font-semibold text-amber-300">--.--.----</span>
+            </div>
+            <div class="border-l border-gray-800 pl-4">
+                <span class="text-gray-400 text-xs block">Знак Солнца:</span>
+                <span id="zodiacDisplay" class="font-semibold text-indigo-300">--</span>
+            </div>
         </div>
     </header>
 
-    <!-- Основной блок с холстом -->
-    <main class="w-full max-w-5xl flex-grow flex flex-col items-center justify-center my-3">
-        <div class="relative w-full aspect-[4/3] sm:aspect-[16/9] max-h-[580px] bg-slate-950 rounded-2xl overflow-hidden border border-gray-800 shadow-2xl shadow-purple-950/20">
-            <!-- Холст симуляции -->
-            <canvas id="spaceCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
-            
-            <!-- Легенда и текущий статус прямо на холсте -->
-            <div class="absolute top-4 left-4 pointer-events-none bg-slate-900/85 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-gray-800 text-xs text-gray-300 flex flex-col gap-1.5 shadow-xl">
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500 ring-2 ring-blue-400/30"></span>
-                    <span class="font-semibold text-white">Земля (Центр мира)</span>
+    <!-- Main Canvas Container -->
+    <main class="w-full max-w-5xl flex-grow flex items-center justify-center relative bg-gray-950/50 rounded-3xl border border-gray-800/60 overflow-hidden shadow-2xl min-h-[500px]">
+        <canvas id="spaceCanvas" class="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"></canvas>
+        
+        <!-- Floating controls overlay -->
+        <div class="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-gray-900/90 backdrop-blur-md p-4 rounded-2xl border border-gray-800 shadow-2xl flex flex-col space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Управление симуляцией</span>
+                <button id="todayBtn" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1 rounded-lg transition font-medium shadow-sm">
+                    Сегодня
+                </button>
+            </div>
+
+            <!-- Date Picker -->
+            <div class="flex flex-col space-y-1">
+                <label for="datePicker" class="text-xs text-gray-400">Выбрать дату:</label>
+                <input type="date" id="datePicker" class="bg-gray-950 border border-gray-800 rounded-xl px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-indigo-500">
+            </div>
+
+            <!-- Play / Pause & Speed -->
+            <div class="flex items-center space-x-2 pt-1">
+                <button id="playPauseBtn" class="flex-1 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold py-2 px-3 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/20">
+                    <i id="playPauseIcon" class="fa-solid fa-pause"></i>
+                    <span id="playPauseText" class="text-xs">Пауза</span>
+                </button>
+                <button id="resetViewBtn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 py-2 px-3 rounded-xl transition text-xs font-medium" title="Центрировать">
+                    <i class="fa-solid fa-arrows-to-dot"></i>
+                </button>
+            </div>
+
+            <!-- Speed Slider -->
+            <div class="flex flex-col space-y-1">
+                <div class="flex justify-between text-xs text-gray-400">
+                    <span>Скорость:</span>
+                    <span id="speedVal" class="text-amber-400 font-mono">5.0x</span>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400 ring-2 ring-amber-400/30"></span>
-                    <span class="font-semibold text-white">Солнце (На орбите)</span>
-                </div>
-                <div class="pt-1 border-t border-gray-800 text-[11px] text-pink-300 flex justify-between gap-3">
-                    <span>Знак Зодиака:</span>
-                    <span id="currentZodiacBadge" class="font-bold text-white">Овен ♈</span>
-                </div>
-                <div class="text-[11px] text-amber-300 flex justify-between gap-3">
-                    <span>Дата:</span>
-                    <span id="currentDateBadge" class="font-bold text-white">02.10.2026</span>
-                </div>
-                <span class="text-[10px] text-gray-400">💡 Перетаскивайте мышкой для перемещения обзора</span>
+                <input type="range" id="speedRange" min="0.1" max="50" step="0.5" value="5" class="accent-amber-500 cursor-pointer">
+            </div>
+
+            <!-- Options Checkboxes -->
+            <div class="grid grid-cols-2 gap-2 pt-1 text-xs text-gray-300 border-t border-gray-800/80 pt-3">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="showOrbits" checked class="accent-indigo-500 rounded">
+                    <span>Орбиты</span>
+                </label>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" id="showRays" checked class="accent-indigo-500 rounded">
+                    <span>Лучи / Проекция</span>
+                </label>
             </div>
         </div>
     </main>
 
-    <!-- Панель управления и футер -->
-    <footer class="w-full max-w-5xl bg-slate-900/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col gap-3.5">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-            
-            <!-- Кнопки управления и Выбор даты -->
-            <div class="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start">
-                <div class="flex items-center gap-2">
-                    <button id="playPauseBtn" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-semibold text-sm transition-all shadow-lg shadow-pink-500/20 active:scale-95 flex items-center gap-2">
-                        <svg id="playIcon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
-                        <span id="playPauseText">Пауза</span>
-                    </button>
-                    <button id="todayBtn" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-gray-200 font-medium text-xs transition-all border border-gray-700">
-                        Сегодня
-                    </button>
-                </div>
-                <div class="flex items-center gap-2">
-                    <input id="datePicker" type="date" class="bg-slate-950 border border-gray-700 text-gray-200 text-xs rounded-xl px-2.5 py-2.5 focus:outline-none focus:border-pink-500 cursor-pointer">
-                </div>
-            </div>
-
-            <!-- Слайдер скорости -->
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between text-xs text-gray-400">
-                    <span>Скорость вращения:</span>
-                    <span id="speedVal" class="font-semibold text-pink-400">1.0x</span>
-                </div>
-                <input id="speedRange" type="range" min="0.1" max="10.0" step="0.1" value="1.0" class="w-full bg-slate-800 h-2 rounded-lg appearance-none cursor-pointer">
-            </div>
-
-            <!-- Чекбоксы переключения элементов -->
-            <div class="flex flex-wrap items-center justify-center md:justify-end gap-3.5 text-xs text-gray-300">
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                    <input id="toggleOrbit" type="checkbox" checked class="w-4 h-4 rounded border-gray-700 text-pink-500 focus:ring-pink-500 bg-slate-800">
-                    <span>Орбита</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                    <input id="toggleZodiac" type="checkbox" checked class="w-4 h-4 rounded border-gray-700 text-pink-500 focus:ring-pink-500 bg-slate-800">
-                    <span>Зодиак</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer select-none">
-                    <input id="toggleRays" type="checkbox" checked class="w-4 h-4 rounded border-gray-700 text-pink-500 focus:ring-pink-500 bg-slate-800">
-                    <span>Визир</span>
-                </label>
-            </div>
-        </div>
-
-        <!-- Информационная строка -->
-        <div class="pt-3 border-t border-gray-800/80 text-xs text-gray-400 leading-relaxed flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p>
-                <strong class="text-gray-200">Геоцентризм с Зодиаком:</strong> Земля неподвижна в центре, Солнце совершает годовой оборот. Знак Овна закреплен справа (3 часа / 0°), знаки идут против часовой стрелки в соответствии с астрономией.
-            </p>
-            <div class="text-pink-300/90 font-mono text-[11px] shrink-0 bg-slate-950/60 px-3 py-1 rounded-lg border border-gray-800">
-                День года: <span id="dayCounter" class="font-bold text-white">0</span> / 365
-            </div>
-        </div>
+    <!-- Footer help text -->
+    <footer class="w-full max-w-5xl text-center py-3 text-xs text-gray-500">
+        Масштабирование колесиком • Перемещение зажатой кнопкой • Знак Овна (♈) зафиксирован справа.
     </footer>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const canvas = document.getElementById('spaceCanvas');
-            const ctx = canvas.getContext('2d');
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
 
-            // Элементы интерфейса
-            const playPauseBtn = document.getElementById('playPauseBtn');
-            const playIcon = document.getElementById('playIcon');
-            const playPauseText = document.getElementById('playPauseText');
-            const todayBtn = document.getElementById('todayBtn');
-            const datePicker = document.getElementById('datePicker');
-            const speedRange = document.getElementById('speedRange');
-            const speedVal = document.getElementById('speedVal');
-            const toggleOrbit = document.getElementById('toggleOrbit');
-            const toggleZodiac = document.getElementById('toggleZodiac');
-            const toggleRays = document.getElementById('toggleRays');
-            const dayCounter = document.getElementById('dayCounter');
-            const currentZodiacBadge = document.getElementById('currentZodiacBadge');
-            const currentDateBadge = document.getElementById('currentDateBadge');
-            const liveStatusText = document.getElementById('liveStatusText');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const playPauseText = document.getElementById('playPauseText');
+        const speedRange = document.getElementById('speedRange');
+        const speedVal = document.getElementById('speedVal');
+        const showOrbitsCheck = document.getElementById('showOrbits');
+        const showRaysCheck = document.getElementById('showRays');
+        const datePicker = document.getElementById('datePicker');
+        const todayBtn = document.getElementById('todayBtn');
+        const resetViewBtn = document.getElementById('resetViewBtn');
+        const dateDisplay = document.getElementById('dateDisplay');
+        const zodiacDisplay = document.getElementById('zodiacDisplay');
 
-            // 12 Знаков Зодиака (начинаются справа при 0 градусов - Овен)
-            const zodiacSigns = [
-                { name: 'Овен', symbol: '♈', element: 'Огонь', startMonth: 3, startDay: 21 },
-                { name: 'Телец', symbol: '♉', element: 'Земля', startMonth: 4, startDay: 20 },
-                { name: 'Близнецы', symbol: '♊', element: 'Воздух', startMonth: 5, startDay: 21 },
-                { name: 'Рак', symbol: '♋', element: 'Вода', startMonth: 6, startDay: 21 },
-                { name: 'Лев', symbol: '♌', element: 'Огонь', startMonth: 7, startDay: 23 },
-                { name: 'Дева', symbol: '♍', element: 'Земля', startMonth: 8, startDay: 23 },
-                { name: 'Весы', symbol: '♎', element: 'Воздух', startMonth: 9, startDay: 23 },
-                { name: 'Скорпион', symbol: '♏', element: 'Вода', startMonth: 10, startDay: 23 },
-                { name: 'Стрелец', symbol: '♐', element: 'Огонь', startMonth: 11, startDay: 22 },
-                { name: 'Козерог', symbol: '♑', element: 'Земля', startMonth: 12, startDay: 22 },
-                { name: 'Водолей', symbol: '♒', element: 'Воздух', startMonth: 1, startDay: 20 },
-                { name: 'Рыбы', symbol: '♓', element: 'Вода', startMonth: 2, startDay: 19 }
-            ];
+        // Zodiac signs (12 signs, Aries (♈) at 0 degrees / Right)
+        const zodiacSigns = [
+            { name: "Овен", symbol: "♈" },
+            { name: "Телец", symbol: "♉" },
+            { name: "Близнецы", symbol: "♊" },
+            { name: "Рак", symbol: "♋" },
+            { name: "Лев", symbol: "♌" },
+            { name: "Дева", symbol: "♍" },
+            { name: "Весы", symbol: "♎" },
+            { name: "Скорпион", symbol: "♏" },
+            { name: "Стрелец", symbol: "♐" },
+            { name: "Козерог", symbol: "♑" },
+            { name: "Водолей", symbol: "♒" },
+            { name: "Рыбы", symbol: "♓" }
+        ];
 
-            // Состояние симуляции
-            let isRunning = true;
-            let speedMultiplier = 1.0;
-            
-            // Получаем сегодняшнюю дату
-            const today = new Date();
-            let simulatedDate = new Date(today);
+        let isPlaying = true;
+        let timeSpeed = 5.0;
+        let scale = 1.0;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX, startY;
 
-            // Устанавливаем значение в date picker (YYYY-MM-DD)
-            function updateDatePickerValue(date) {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate(),).padStart(2, '0');
-                datePicker.value = `${year}-${month}-${day}`;
+        let currentDate = new Date();
+
+        function formatDateToInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        datePicker.value = formatDateToInput(currentDate);
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function getSunAngle(date) {
+            const year = date.getFullYear();
+            const vernalEquinox = new Date(year, 2, 21); // 21 марта - весеннее равноденствие (Овен)
+            const diffDays = (date - vernalEquinox) / (1000 * 60 * 60 * 24);
+            const angle = (diffDays / 365.2425) * 2 * Math.PI;
+            return angle;
+        }
+
+        function getZodiacSign(angle) {
+            let deg = (angle * (180 / Math.PI)) % 360;
+            if (deg < 0) deg += 360;
+            const index = Math.floor(deg / 30) % 12;
+            return zodiacSigns[index];
+        }
+
+        // Mouse & Touch interactions
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+        });
+
+        window.addEventListener('mouseup', () => { isDragging = false; });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomIntensity = 0.1;
+            if (e.deltaY < 0) {
+                scale *= (1 + zoomIntensity);
+            } else {
+                scale /= (1 + zoomIntensity);
             }
-            updateDatePickerValue(simulatedDate);
+            scale = Math.max(0.4, Math.min(3.0, scale));
+        }, { passive: false });
 
-            // Вычисление дня года (0 - 364/365) с учетом равноденствия 21 марта как базы (0 градусов)
-            function getDayOfYear(date) {
-                const year = date.getFullYear();
-                const start = new Date(year, 2, 21); // 21 марта - весеннее равноденствие (Овен, 0 градусов)
-                let diff = date - start;
-                let oneDay = 1000 * 60 * 60 * 24;
-                let dayNum = Math.floor(diff / oneDay);
-                
-                // Если дата раньше 21 марта текущего года, считаем от 21 марта прошлого года
-                if (dayNum < 0) {
-                    const prevStart = new Date(year - 1, 2, 21);
-                    dayNum = Math.floor((date - prevStart) / oneDay);
-                }
-                return dayNum % 365.25;
-            }
-
-            let dayOfYear = getDayOfYear(simulatedDate);
-
-            // Панорамирование мышкой
-            let panX = 0;
-            let panY = 0;
-            let isDragging = false;
-            let startX = 0;
-            let startY = 0;
-
-            // Фоновые звезды
-            let stars = [];
-            function initStars() {
-                stars = [];
-                for (let i = 0; i < 180; i++) {
-                    stars.push({
-                        x: Math.random() * 2400 - 1200,
-                        y: Math.random() * 2400 - 1200,
-                        size: Math.random() * 1.5 + 0.5,
-                        alpha: Math.random() * 0.7 + 0.3
-                    });
-                }
-            }
-
-            // Масштабирование холста
-            function resizeCanvas() {
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = rect.width * window.devicePixelRatio;
-                canvas.height = rect.height * window.devicePixelRatio;
-                ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-            }
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-            initStars();
-
-            // Мышь и тач события для панорамирования
-            canvas.addEventListener('mousedown', (e) => {
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
                 isDragging = true;
-                startX = e.clientX - panX;
-                startY = e.clientY - panY;
-            });
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                panX = e.clientX - startX;
-                panY = e.clientY - startY;
-            });
-            window.addEventListener('mouseup', () => { isDragging = false; });
+                startX = e.touches[0].clientX - panX;
+                startY = e.touches[0].clientY - panY;
+            }
+        });
+        window.addEventListener('touchmove', (e) => {
+            if (!isDragging || e.touches.length !== 1) return;
+            panX = e.touches[0].clientX - startX;
+            panY = e.touches[0].clientY - startY;
+        });
+        window.addEventListener('touchend', () => { isDragging = false; });
 
-            canvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    isDragging = true;
-                    startX = e.touches[0].clientX - panX;
-                    startY = e.touches[0].clientY - panY;
-                }
-            });
-            window.addEventListener('touchmove', (e) => {
-                if (!isDragging || e.touches.length !== 1) return;
-                panX = e.touches[0].clientX - startX;
-                panY = e.touches[0].clientY - startY;
-            });
-            window.addEventListener('touchend', () => { isDragging = false; });
+        playPauseBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            if (isPlaying) {
+                playPauseIcon.className = "fa-solid fa-pause";
+                playPauseText.textContent = "Пауза";
+            } else {
+                playPauseIcon.className = "fa-solid fa-play";
+                playPauseText.textContent = "Старт";
+            }
+        });
 
-            // Обработчики элементов управления
-            playPauseBtn.addEventListener('click', () => {
-                isRunning = !isRunning;
-                if (isRunning) {
-                    playPauseText.textContent = 'Пауза';
-                    playIcon.innerHTML = '<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>';
-                    liveStatusText.textContent = 'Симуляция';
-                } else {
-                    playPauseText.textContent = 'Старт';
-                    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-                    liveStatusText.textContent = 'Пауза';
-                }
-            });
+        speedRange.addEventListener('input', (e) => {
+            timeSpeed = parseFloat(e.target.value);
+            speedVal.textContent = timeSpeed.toFixed(1) + 'x';
+        });
 
-            todayBtn.addEventListener('click', () => {
-                simulatedDate = new Date();
-                dayOfYear = getDayOfYear(simulatedDate);
-                updateDatePickerValue(simulatedDate);
-            });
+        datePicker.addEventListener('change', (e) => {
+            if (e.target.value) {
+                currentDate = new Date(e.target.value);
+            }
+        });
 
-            datePicker.addEventListener('change', (e) => {
-                const val = e.target.value;
-                if (val) {
-                    simulatedDate = new Date(val);
-                    dayOfYear = getDayOfYear(simulatedDate);
-                    isRunning = false;
-                    playPauseText.textContent = 'Старт';
-                    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-                    liveStatusText.textContent = 'Выбранная дата';
-                }
-            });
+        todayBtn.addEventListener('click', () => {
+            currentDate = new Date();
+            datePicker.value = formatDateToInput(currentDate);
+        });
 
-            speedRange.addEventListener('input', (e) => {
-                speedMultiplier = parseFloat(e.target.value);
-                speedVal.textContent = speedMultiplier.toFixed(1) + 'x';
-            });
+        resetViewBtn.addEventListener('click', () => {
+            scale = 1.0;
+            panX = 0;
+            panY = 0;
+        });
 
-            // Главный цикл анимации
-            function animate() {
-                const width = canvas.width / window.devicePixelRatio;
-                const height = canvas.height / window.devicePixelRatio;
+        let lastTimestamp = performance.now();
 
-                ctx.clearRect(0, 0, width, height);
+        function animate(timestamp) {
+            const dt = (timestamp - lastTimestamp) / 1000;
+            lastTimestamp = timestamp;
+
+            if (isPlaying) {
+                const daysToAdd = dt * timeSpeed * 3; // Ускоренный шаг для плавности
+                currentDate.setDate(currentDate.getDate() + daysToAdd);
+                datePicker.value = formatDateToInput(currentDate);
+            }
+
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            dateDisplay.textContent = currentDate.toLocaleDateString('ru-RU', options);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2 + panX;
+            const centerY = canvas.height / 2 + panY;
+            const minDim = Math.min(canvas.width, canvas.height);
+            const baseRadius = minDim * 0.35 * scale;
+
+            const sunOrbitRadius = baseRadius * 0.75;
+            const moonOrbitRadius = baseRadius * 0.33;
+            const zodiacRadius = baseRadius * 1.05;
+
+            // Zodiac Circle
+            if (showOrbitsCheck.checked) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, zodiacRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Zodiac Signs
+            for (let i = 0; i < 12; i++) {
+                const angle = (i * 30) * (Math.PI / 180);
+                const x = centerX + zodiacRadius * Math.cos(angle);
+                const y = centerY + zodiacRadius * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.moveTo(centerX + (zodiacRadius - 8) * Math.cos(angle), centerY + (zodiacRadius - 8) * Math.sin(angle));
+                ctx.lineTo(centerX + (zodiacRadius + 8) * Math.cos(angle), centerY + (zodiacRadius + 8) * Math.sin(angle));
+                ctx.strokeStyle = 'rgba(129, 140, 248, 0.5)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
 
                 ctx.save();
-                ctx.translate(width / 2 + panX, height / 2 + panY);
-
-                // 1. Отрисовка звезд
-                stars.forEach(star => {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
-                    ctx.beginPath();
-                    ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-
-                // Обновление даты при включенной симуляции
-                if (isRunning) {
-                    dayOfYear += 0.2 * speedMultiplier;
-                    if (dayOfYear >= 365.25) dayOfYear = 0;
-
-                    // Обновляем объект simulatedDate на основе дня года
-                    const baseDate = new Date(simulatedDate.getFullYear(), 2, 21);
-                    simulatedDate = new Date(baseDate.getTime() + dayOfYear * 24 * 60 * 60 * 1000);
-                    updateDatePickerValue(simulatedDate);
-                }
-
-                // Форматирование даты для вывода
-                const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                currentDateBadge.textContent = simulatedDate.toLocaleDateString('ru-RU', options);
-                dayCounter.textContent = Math.floor(dayOfYear);
-
-                const minDim = Math.min(width, height);
-                const sunOrbitRadius = minDim * 0.26;
-                const zodiacRadius = minDim * 0.39;
-
-                // 2. Отрисовка Зодиакального круга (Овен строго справа при 0°)
-                if (toggleZodiac.checked) {
-                    ctx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
-                    ctx.lineWidth = 42;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, zodiacRadius, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    ctx.strokeStyle = 'rgba(216, 180, 254, 0.4)';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.arc(0, 0, zodiacRadius - 21, 0, Math.PI * 2);
-                    ctx.arc(0, 0, zodiacRadius + 21, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    const anglePerSign = (Math.PI * 2) / 12;
-                    for (let i = 0; i < 12; i++) {
-                        // i = 0 (Овен) начинается строго на 0 радианов (справа / 3 часа)
-                        const startAngle = i * anglePerSign;
-                        const midAngle = startAngle + anglePerSign / 2;
-
-                        ctx.strokeStyle = 'rgba(168, 85, 247, 0.3)';
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(Math.cos(startAngle) * (zodiacRadius - 21), Math.sin(startAngle) * (zodiacRadius - 21));
-                        ctx.lineTo(Math.cos(startAngle) * (zodiacRadius + 21), Math.sin(startAngle) * (zodiacRadius + 21));
-                        ctx.stroke();
-
-                        const textX = Math.cos(midAngle) * zodiacRadius;
-                        const textY = Math.sin(midAngle) * zodiacRadius;
-
-                        ctx.save();
-                        ctx.translate(textX, textY);
-                        // Поворот по радиусу для идеальной читаемости
-                        ctx.rotate(midAngle + Math.PI / 2);
-                        ctx.fillStyle = '#f3e8ff';
-                        ctx.font = '600 15px Inter, sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(zodiacSigns[i].symbol, 0, 0);
-                        ctx.restore();
-                    }
-
-                    ctx.fillStyle = 'rgba(216, 180, 254, 0.7)';
-                    ctx.font = '500 10px Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('НЕБЕСНАЯ СФЕРА (ОВЕН СПРАВА)', 0, -zodiacRadius - 28);
-                }
-
-                // 3. Орбита Солнца
-                if (toggleOrbit.checked) {
-                    ctx.strokeStyle = 'rgba(251, 191, 36, 0.2)';
-                    ctx.lineWidth = 1.5;
-                    ctx.setLineDash([4, 4]);
-                    ctx.beginPath();
-                    ctx.arc(0, 0, sunOrbitRadius, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                }
-
-                // Угол Солнца: 365.25 дней = 2*PI против часовой стрелки, 0 день (21 марта) находится справа (0 рад)
-                const sunAngle = (dayOfYear / 365.25) * (Math.PI * 2);
-                const sunX = Math.cos(sunAngle) * sunOrbitRadius;
-                const sunY = Math.sin(sunAngle) * sunOrbitRadius;
-
-                // Определение текущего знака зодиака
-                let normalizedAngle = sunAngle % (Math.PI * 2);
-                if (normalizedAngle < 0) normalizedAngle += Math.PI * 2;
-                const currentSignIndex = Math.floor((normalizedAngle / (Math.PI * 2)) * 12) % 12;
-                const activeZodiac = zodiacSigns[currentSignIndex];
-                currentZodiacBadge.textContent = `${activeZodiac.name} ${activeZodiac.symbol}`;
-
-                // 4. Линия визирования
-                if (toggleRays.checked) {
-                    ctx.strokeStyle = 'rgba(244, 114, 182, 0.35)';
-                    ctx.lineWidth = 1.5;
-                    ctx.setLineDash([3, 3]);
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    const outerX = Math.cos(sunAngle) * zodiacRadius;
-                    const outerY = Math.sin(sunAngle) * zodiacRadius;
-                    ctx.lineTo(outerX, outerY);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                }
-
-                // 5. Солнце
-                const sunRadius = 26;
-                const sunGradient = ctx.createRadialGradient(sunX, sunY, 3, sunX, sunY, sunRadius * 2);
-                sunGradient.addColorStop(0, 'rgba(253, 224, 71, 0.9)');
-                sunGradient.addColorStop(0.5, 'rgba(245, 158, 11, 0.4)');
-                sunGradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
-                
-                ctx.fillStyle = sunGradient;
-                ctx.beginPath();
-                ctx.arc(sunX, sunY, sunRadius * 2, 0, Math.PI * 2);
-                ctx.fill();
-
-                const sunBodyGrad = ctx.createRadialGradient(sunX - 4, sunY - 4, 2, sunX, sunY, sunRadius);
-                sunBodyGrad.addColorStop(0, '#fef08a');
-                sunBodyGrad.addColorStop(0.6, '#f59e0b');
-                sunBodyGrad.addColorStop(1, '#d97706');
-                
-                ctx.fillStyle = sunBodyGrad;
-                ctx.beginPath();
-                ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#fef08a';
-                ctx.font = '600 11px Inter, sans-serif';
+                ctx.translate(x, y);
+                ctx.font = `${Math.max(16, 20 * scale)}px Arial, sans-serif`;
+                ctx.fillStyle = i === 0 ? '#f59e0b' : '#9ca3af';
                 ctx.textAlign = 'center';
-                ctx.fillText('Солнце', sunX, sunY + sunRadius + 15);
-
-                // 6. Земля (Центр)
-                const earthRadius = 32;
-                const earthGlow = ctx.createRadialGradient(0, 0, earthRadius * 0.8, 0, 0, earthRadius * 1.6);
-                earthGlow.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
-                earthGlow.addColorStop(1, 'rgba(59, 130, 246, 0)');
-                ctx.fillStyle = earthGlow;
-                ctx.beginPath();
-                ctx.arc(0, 0, earthRadius * 1.6, 0, Math.PI * 2);
-                ctx.fill();
-
-                const earthGrad = ctx.createRadialGradient(-8, -8, 4, 0, 0, earthRadius);
-                earthGrad.addColorStop(0, '#60a5fa');
-                earthGrad.addColorStop(0.6, '#1d4ed8');
-                earthGrad.addColorStop(1, '#1e1b4b');
-                
-                ctx.fillStyle = earthGrad;
-                ctx.beginPath();
-                ctx.arc(0, 0, earthRadius, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = 'rgba(34, 197, 94, 0.65)';
-                ctx.beginPath();
-                ctx.arc(-8, -4, 10, 0, Math.PI * 1.5);
-                ctx.arc(10, 8, 8, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = '#93c5fd';
-                ctx.font = '700 12px Inter, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('Земля (Центр)', 0, earthRadius + 18);
-
+                ctx.textBaseline = 'middle';
+                ctx.fillText(zodiacSigns[i].symbol, 0, 0);
                 ctx.restore();
-
-                requestAnimationFrame(animate);
             }
 
+            // Moon Orbit
+            if (showOrbitsCheck.checked) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, moonOrbitRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(156, 163, 175, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Sun Orbit
+            if (showOrbitsCheck.checked) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, sunOrbitRadius, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(245, 158, 11, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            const sunAngle = getSunAngle(currentDate);
+            const sunX = centerX + sunOrbitRadius * Math.cos(sunAngle);
+            const sunY = centerY + sunOrbitRadius * Math.sin(sunAngle);
+
+            const currentZodiac = getZodiacSign(sunAngle);
+            zodiacDisplay.textContent = `${currentZodiac.symbol} ${currentZodiac.name}`;
+
+            const yearStart = new Date(currentDate.getFullYear(), 0, 1);
+            const daysPassed = (currentDate - yearStart) / (1000 * 60 * 60 * 24);
+            const moonAngle = (daysPassed / 27.32) * 2 * Math.PI;
+            const moonX = centerX + moonOrbitRadius * Math.cos(moonAngle);
+            const moonY = centerY + moonOrbitRadius * Math.sin(moonAngle);
+
+            // Bright Sun Rays / Projection
+            if (showRaysCheck.checked) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                const projX = centerX + (zodiacRadius + 25) * Math.cos(sunAngle);
+                const projY = centerY + (zodiacRadius + 25) * Math.sin(sunAngle);
+                ctx.lineTo(projX, projY);
+                ctx.strokeStyle = 'rgba(251, 191, 36, 0.85)';
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([6, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Central Observer
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#60a5fa';
+            ctx.shadowColor = '#3b82f6';
+            ctx.shadowBlur = 12;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.font = '11px sans-serif';
+            ctx.fillStyle = '#93c5fd';
+            ctx.textAlign = 'center';
+            ctx.fillText("Наблюдатель", centerX, centerY + 20);
+
+            // Moon
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, 7 * Math.max(0.7, scale * 0.8), 0, 2 * Math.PI);
+            ctx.fillStyle = '#d1d5db';
+            ctx.shadowColor = '#9ca3af';
+            ctx.shadowBlur = 8;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.font = '10px sans-serif';
+            ctx.fillStyle = '#9ca3af';
+            ctx.textAlign = 'center';
+            ctx.fillText("Луна", moonX, moonY - 14);
+
+            // Sun
+            const sunRadius = 14 * Math.max(0.7, scale * 0.8);
+            const gradient = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, sunRadius * 2.5);
+            gradient.addColorStop(0, 'rgba(251, 191, 36, 1)');
+            gradient.addColorStop(0.5, 'rgba(245, 158, 11, 0.5)');
+            gradient.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, sunRadius * 2.5, 0, 2 * Math.PI);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, sunRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fbbf24';
+            ctx.shadowColor = '#f59e0b';
+            ctx.shadowBlur = 25;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.font = '12px sans-serif';
+            ctx.fillStyle = '#fde68a';
+            ctx.textAlign = 'center';
+            ctx.fillText("Солнце", sunX, sunY - sunRadius - 8);
+
             requestAnimationFrame(animate);
-        });
+        }
+
+        requestAnimationFrame(animate);
     </script>
 </body>
 </html>
